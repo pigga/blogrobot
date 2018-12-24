@@ -1,0 +1,10 @@
+*.bak
+*.pyc
+/venv/
+/.idea/
+log.txt
+*.txt
+centos7-x64
+/build/
+/dist/
+MANIFEST
