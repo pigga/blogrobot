@@ -1,0 +1,18 @@
+Metadata-Version: 1.1
+Name: blogrobot
+Version: 1.0
+Summary: blogrobot
+Home-page: https://pigga.github.io/
+Author: Yannis
+Author-email: piggachen@163.com
+License: UNKNOWN
+Description: False
+Platform: UNKNOWN
+Classifier: Environment :: Linux
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
