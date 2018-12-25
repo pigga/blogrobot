@@ -35,7 +35,13 @@ class CnBlogs(object):
 
 
 def get_post_content_info(req_header, temp_post_info):
-    pass
+    req_response = HttpClient.get(temp_post_info['url'], req_headers=req_header)
+    print req_response
+    post_content = BeautifulSoup(req_response, 'lxml')
+    post_title = post_content.find('a', id='cb_post_title_url').text.strip()
+    post_content = post_content.find('div', id='cnblogs_post_body').text.strip()
+    print post_title
+    print post_content
 
 
 def get_post_info(req_url, req_header, page_index, temp_post_info_list):
@@ -45,16 +51,17 @@ def get_post_info(req_url, req_header, page_index, temp_post_info_list):
     items = page.find_all('div', class_='post')
     for post_item in items:
         temp_post_item = {}
+        # 仅获取界面的相关博客内容
         content_str = post_item.find('div', class_='postFoot').text.strip()
         temp_content_arr = content_str.split(" ")
         temp_post_item['url'] = post_item.find("a").get("href")
         temp_post_item['date'] = temp_content_arr[2] + " " + temp_content_arr[3]
         temp_post_item['read_num'] = int(re.findall('\((.*?)\)', temp_content_arr[5])[0])
         temp_post_item['post_num'] = int(re.findall('\((.*?)\)', temp_content_arr[6])[0])
-        # 填充blog的url
         temp_post_info_list.append(temp_post_item)
-    if len(items) == 10:
-        get_post_info(req_url, req_header, page_index + 1, temp_post_info_list)
+    # TODO 开发注释掉该部分代码
+    # if len(items) == 10:
+    #     get_post_info(req_url, req_header, page_index + 1, temp_post_info_list)
 
 
 
