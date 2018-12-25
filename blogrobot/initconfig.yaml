@@ -2,3 +2,5 @@
 log_path: 'auto_install.log'
 # 默认日志级别 NoSet 0, Debug 10, Info  20, Warning 30, Error 40, Critical 50
 log_level: Debug
+# 自己博客园地址
+cnblogs_url: https://www.cnblogs.com/pigga

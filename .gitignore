@@ -1,5 +1,6 @@
 *.bak
 *.pyc
+*.log
 /venv/
 /.idea/
 log.txt

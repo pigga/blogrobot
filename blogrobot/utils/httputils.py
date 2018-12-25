@@ -10,8 +10,9 @@ import json
 from blogrobot.utils.readconfig import read_node_by_config
 import sys
 from blogrobot.utils.log import Logger
+
 log_path = read_node_by_config("log_path")
-logInfo = Logger(log_name=log_path, log_format_temp=1, logger='HttpUtils').get_log()
+logInfo = Logger(log_name=log_path, log_format_temp=1, logger='HttpClient').get_log()
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
