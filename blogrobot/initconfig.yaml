@@ -4,3 +4,4 @@ log_path: 'auto_install.log'
 log_level: Debug
 # 自己博客园地址
 cnblogs_url: https://www.cnblogs.com/pigga
+
