@@ -11,6 +11,7 @@ import sys
 from bs4 import BeautifulSoup
 from blogrobot.utils.httputils import HttpClient
 from blogrobot.utils.log import Logger
+from blogrobot.cnblogs.cnblogselenium import CNBlogSelenium
 log_path = read_node_by_config("log_path")
 logInfo = Logger(log_name=log_path, log_format_temp=1, logger='HttpUtils').get_log()
 reload(sys)
@@ -19,12 +20,20 @@ sys.setdefaultencoding('utf-8')
 
 class CnBlogs(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        for key, val in kwargs.iteritems():
+            setattr(self, key, val)
+
+    @classmethod
+    def login_cnblog(cls):
+        cnblog = fill_cnblog_by_conf()
+        login_response = CNBlogSelenium(cnblog.cnblog_username, cnblog.cnblog_password)
+        logInfo.info(login_response)
 
     @classmethod
     def get_blog_info_and_content(cls):
-        req_url = read_node_by_config("cnblogs_url")
+        cnBlog = fill_cnblog_by_conf()
+        req_url = cnBlog.cnblogs_url
         req_header = {'User-Agent':
                       'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}
         temp_post_info_list = []
@@ -64,6 +73,13 @@ def get_post_info(req_url, req_header, page_index, temp_post_info_list):
     #     get_post_info(req_url, req_header, page_index + 1, temp_post_info_list)
 
 
+def fill_cnblog_by_conf():
+    """
+    根据配置文件初始化计算节点信息,在删除时使用
+    :return:
+    """
+    cnblog_node = read_node_by_config('cnblog')
+    return CnBlogs(**cnblog_node)
 
 CnBlogs.get_blog_info_and_content()
 

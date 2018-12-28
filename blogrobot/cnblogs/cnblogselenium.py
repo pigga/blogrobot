@@ -23,12 +23,14 @@ goolge drive的地址 http://chromedriver.storage.googleapis.com/index.html
 """
 
 
-class SeleniumVerify(object):
-    def __init__(self):
+class CNBlogSelenium(object):
+    def __init__(self, user_name, pwd):
+        self.user_name = user_name
+        self.password = pwd
         opt = webdriver.ChromeOptions()
         # 设置无头模式，调试的时候可以注释这句
         # opt.set_headless()
-        self.driver = webdriver.Chrome(executable_path=r"/usr1/webdrivers/chromedriver", chrome_options=opt)
+        self.driver = webdriver.Chrome(executable_path=r"chromedriver", chrome_options=opt)
         self.driver.set_window_size(1440, 900)
 
     def visit_login(self):
@@ -37,11 +39,11 @@ class SeleniumVerify(object):
             WebDriverWait(self.driver, 10, 0.5).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="input1"]')))
             username = self.driver.find_element_by_xpath('//*[@id="input1"]')
             username.clear()
-            username.send_keys("账号")
+            username.send_keys(self.user_name)
             WebDriverWait(self.driver, 10, 0.5).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="input2"]')))
             password = self.driver.find_element_by_xpath('//*[@id="input2"]')
             password.clear()
-            password.send_keys("密码")
+            password.send_keys(self.pwd)
             WebDriverWait(self.driver, 10, 0.5).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="signin"]')))
             signin = self.driver.find_element_by_xpath('//*[@id="signin"]')
             signin.click()
@@ -53,7 +55,6 @@ class SeleniumVerify(object):
             self.analog_move()
         except:
             pass
-
         self.driver.quit()
 
     # 截图处理
