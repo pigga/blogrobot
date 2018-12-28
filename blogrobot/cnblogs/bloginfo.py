@@ -11,7 +11,7 @@ import sys
 from bs4 import BeautifulSoup
 from blogrobot.utils.httputils import HttpClient
 from blogrobot.utils.log import Logger
-from blogrobot.cnblogs.cnblogselenium import CNBlogSelenium
+from cnblogselenium import CNBlogSelenium
 log_path = read_node_by_config("log_path")
 logInfo = Logger(log_name=log_path, log_format_temp=1, logger='HttpUtils').get_log()
 reload(sys)
