@@ -5,3 +5,5 @@ _注意:最好所有的博客都支持markdown方式,且所有博客均使用mar
 **开发环境要求**<br/>
 - Python = 2.7<br/>
 - 下载浏览器对应的驱动,[chrome对应的驱动url](http://chromedriver.storage.googleapis.com/index.html).
+selenium 文档
+https://selenium-python.readthedocs.io/
