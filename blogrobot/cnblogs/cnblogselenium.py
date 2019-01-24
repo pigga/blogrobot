@@ -144,5 +144,3 @@ def calc_cut_offset(cut_img, full_img):
             y += 1
         x += 1
     return left, right - left
-
-CNBlogSelenium('Yannis-chen', 'Chen@384915').visit_login()
