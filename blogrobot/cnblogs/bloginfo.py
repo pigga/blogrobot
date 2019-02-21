@@ -11,7 +11,8 @@ import sys
 from bs4 import BeautifulSoup
 from blogrobot.utils.httputils import HttpClient
 from blogrobot.utils.log import Logger
-from cnblogselenium import CNBlogSelenium
+# from cnblogselenium import CNBlogSelenium
+import codecs
 log_path = read_node_by_config("log_path")
 logInfo = Logger(log_name=log_path, log_format_temp=1, logger='HttpUtils').get_log()
 reload(sys)
@@ -26,9 +27,10 @@ class CnBlogs(object):
 
     @classmethod
     def login_cnblog(cls):
-        cnblog = fill_cnblog_by_conf()
-        login_response = CNBlogSelenium(cnblog.cnblog_username, cnblog.cnblog_password)
-        logInfo.info(login_response)
+        # cnblog = fill_cnblog_by_conf()
+        # login_response = CNBlogSelenium(cnblog.cnblog_username, cnblog.cnblog_password)
+        # logInfo.info(login_response)
+        pass
 
     @classmethod
     def get_blog_info_and_content(cls):
@@ -45,32 +47,29 @@ class CnBlogs(object):
 
 def get_post_content_info(req_header, temp_post_info):
     req_response = HttpClient.get(temp_post_info['url'], req_headers=req_header)
-    print req_response
     post_content = BeautifulSoup(req_response, 'lxml')
-    post_title = post_content.find('a', id='cb_post_title_url').text.strip()
-    post_content = post_content.find('div', id='cnblogs_post_body').text.strip()
-    print post_title
-    print post_content
-
+    page_title = post_content.find('a', id='cb_post_title_url').text.strip()
+    page_content = post_content.find('div', id='cnblogs_post_body').text.strip()
+    page_date = post_content.find('span', id='post-date').text.strip()
+    new_file_name = page_date.split(" ")[0].replace("-", "_") + "_" + page_title+".md"
+    with codecs.open(new_file_name, mode='a', encoding='utf-8-sig') as f:
+        f.write(page_content)
 
 def get_post_info(req_url, req_header, page_index, temp_post_info_list):
+    print '======page index-------'
+    print page_index
     req_params = {"page": page_index}
     req_response = HttpClient.get(req_url, req_params, req_header)
     page = BeautifulSoup(req_response, 'lxml')
-    items = page.find_all('div', class_='post')
+    items = page.find_all('div', class_='postTitle')
     for post_item in items:
         temp_post_item = {}
         # 仅获取界面的相关博客内容
-        content_str = post_item.find('div', class_='postFoot').text.strip()
-        temp_content_arr = content_str.split(" ")
         temp_post_item['url'] = post_item.find("a").get("href")
-        temp_post_item['date'] = temp_content_arr[2] + " " + temp_content_arr[3]
-        temp_post_item['read_num'] = int(re.findall('\((.*?)\)', temp_content_arr[5])[0])
-        temp_post_item['post_num'] = int(re.findall('\((.*?)\)', temp_content_arr[6])[0])
         temp_post_info_list.append(temp_post_item)
     # TODO 开发注释掉该部分代码
-    # if len(items) == 10:
-    #     get_post_info(req_url, req_header, page_index + 1, temp_post_info_list)
+    if len(items) == 10:
+        get_post_info(req_url, req_header, page_index + 1, temp_post_info_list)
 
 
 def fill_cnblog_by_conf():

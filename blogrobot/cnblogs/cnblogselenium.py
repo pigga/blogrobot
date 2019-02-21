@@ -13,6 +13,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+import requests
+from io import BytesIO
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 """
 作者：星星在线
 来源：CSDN
@@ -32,6 +37,37 @@ class CNBlogSelenium(object):
         # opt.set_headless()
         self.driver = webdriver.Chrome(executable_path=r"/usr/lib/chromedriver", chrome_options=opt)
         self.driver.set_window_size(1440, 900)
+
+        # 拼接图片
+        def mosaic_image(self, image_url, location):
+            resq = requests.get(image_url)
+            file = BytesIO(resq.content)
+            img = Image.open(file)
+            image_upper_lst = []
+            image_down_lst = []
+            for pos in location:
+                if pos[1] == 0:
+                    # y值==0的图片属于上半部分，高度58
+                    image_upper_lst.append(
+                        img.crop((abs(pos[0]), 0, abs(pos[0]) + 10, 58)))
+                else:
+                    # y值==58的图片属于下半部分
+                    image_down_lst.append(img.crop(
+                        (abs(pos[0]), 58, abs(pos[0]) + 10, img.height)))
+
+            x_offset = 0
+            # 创建一张画布，x_offset主要为新画布使用
+            new_img = Image.new("RGB", (260, img.height))
+            for img in image_upper_lst:
+                new_img.paste(img, (x_offset, 58))
+                x_offset += img.width
+
+            x_offset = 0
+            for img in image_down_lst:
+                new_img.paste(img, (x_offset, 0))
+                x_offset += img.width
+
+            return new_img
 
     def visit_login(self):
         self.driver.get("https://passport.cnblogs.com/user/signin")
@@ -55,36 +91,94 @@ class CNBlogSelenium(object):
         # self.driver.quit()
 
     def analog_move(self):
-        self.screenshot_processing()
+        distance = self.screenshot_processing()
+        element = self.driver.find_element_by_xpath(
+            '//*[@class="geetest_slider_button"]')
+        self.start_move(distance, element)
 
+        # 判断是否登录成功
+        tip_btn = self.driver.find_element_by_xpath('//*[@id="tip_btn"]')
+        if tip_btn.text.find("登录成功") == -1:
+            WebDriverWait(self.driver, 3, 0.5).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, '//*[@class="geetest_reset_tip_content"]')))
+            reset_btn = self.driver.find_element_by_xpath(
+                '//*[@class="geetest_reset_tip_content"]')
+            # 判断是否需要重新打开滑块框
+            if reset_btn.text.find("重试") != -1:
+                reset_btn.click()
+            else:
+                time.sleep(1)
+            # 刷新滑块验证码图片
+            refresh_btn = self.driver.find_element_by_xpath(
+                '//*[@class="geetest_refresh_1"]')
+            refresh_btn.click()
+            time.sleep(0.5)
+
+            # 重新进行截图、分析、计算、拖动处理
+            self.analog_move()
+        else:
+            print("登录成功")
+
+    # 判断颜色是否相近
+    def is_similar_color(self, x_pixel, y_pixel):
+        for i, pixel in enumerate(x_pixel):
+            if abs(y_pixel[i] - pixel) > 50:
+                return False
+        return True
+
+    # 计算距离
+    def get_offset_distance(self, cut_img, full_img):
+        x, y = 1, 1
+        find_one = False
+        top = 0
+        left = 0
+        right = 0
+        while x < cut_img.width:
+            y = 1
+            while y < cut_img.height:
+                cpx = cut_img.getpixel((x, y))
+                fpx = full_img.getpixel((x, y))
+                if abs(cpx - fpx) > 50:
+                    if not find_one:
+                        find_one = True
+                        x += 60
+                        y -= 10
+                        continue
+                    else:
+                        if left == 0:
+                            left = x
+                            top = y
+                        right = x
+                        break
+                y += 1
+            x += 1
+        # return left, right - left
+        return right - left
 
     # 截图处理
     def screenshot_processing(self):
-        # WebDriverWait(self.driver, 10, 0.5).until(
-        #     EC.element_to_be_clickable((By.XPATH, '//*[@class="geetest_slider_button"]')))
-        # WebDriverWait(self.driver, 10, 0.5).until(EC.element_to_be_clickable(
-        #     (By.XPATH, '//canvas[@class="geetest_canvas_fullbg geetest_fade geetest_absolute"]')))
         element = self.driver.find_element_by_xpath(
             '//canvas[@class="geetest_canvas_fullbg geetest_fade geetest_absolute"]')
+
         # 保存登录页面截图
         self.driver.get_screenshot_as_file("login.png")
         image = Image.open("login.png")
+
         # 打开截图，获取element的坐标和大小
         left = element.location.get("x")
         top = element.location.get("y")
         right = left + element.size.get("width")
         bottom = top + element.size.get("height")
+
         # 对此区域进行截图，然后灰度处理
         cropImg = image.crop((left, top, right, bottom))
-        full_Img = cropImg.convert('L')
+        full_Img = cropImg.convert("L")
         full_Img.save("fullimage.png")
-        WebDriverWait(self.driver, 10, 0.5).until(
-            EC.element_to_be_clickable((By.XPATH, '//*[@class=""]')))
-        move_btn = self.driver.find_element_by_xpath('//*[@class="geetest_slider_button"]')
-        ActionChains(self.driver).move_to_element(move_btn).click_and_hold(move_btn).perform()
-        WebDriverWait(self.driver, 10, 0.5).until(
-            EC.element_to_be_clickable((By.XPATH, '//canvas[@class="geetest_canvas_slice geetest_absolute"]')))
-        element = self.driver.find_element_by_xpath('//canvas[@class="geetest_canvas_slice geetest_absolute"]')
+        # 缺口位置
+        element = self.driver.find_element_by_xpath(
+            '//canvas[@class="geetest_canvas_slice geetest_absolute"]')
+
         self.driver.get_screenshot_as_file("login.png")
         image = Image.open("login.png")
         left = element.location.get("x")
@@ -92,18 +186,18 @@ class CNBlogSelenium(object):
         right = left + element.size.get("width")
         bottom = top + element.size.get("height")
         cropImg = image.crop((left, top, right, bottom))
-        cut_Img = cropImg.convert('L')
+        cut_Img = cropImg.convert("L")
         cut_Img.save("cutimage.png")
-        print calc_cut_offset(cut_Img, full_Img)
+        distance = self.get_offset_distance(cut_Img, full_Img)
+        return distance
 
     def start_move(self, distance, element, click_hold=False):
         # 这里就是根据移动进行调试，计算出来的位置不是百分百正确的，加上一点偏移
         distance -= 7
-        print(distance)
         # 按下鼠标左键
         if click_hold:
             ActionChains(self.driver).click_and_hold(element).perform()
-
+        print '--=====-----'
         while distance > 0:
             if distance > 10:
                 # 如果距离大于10，就让他移动快一点
@@ -114,33 +208,9 @@ class CNBlogSelenium(object):
                 span = random.randint(2, 3)
             ActionChains(self.driver).move_by_offset(span, 0).perform()
             distance -= span
-
         ActionChains(self.driver).move_by_offset(distance, 1).perform()
         ActionChains(self.driver).release(on_element=element).perform()
+        print '--======---------------'
 
-def calc_cut_offset(cut_img, full_img):
-    x, y = 1, 1
-    find_one = False
-    top = 0
-    left = 0
-    right = 0
-    while x < cut_img.width:
-        y = 1
-        while y < cut_img.height:
-            cpx = cut_img.getpixel((x, y))
-            fpx = full_img.getpixel((x, y))
-            if abs(cpx - fpx) > 50:
-                if not find_one:
-                    find_one = True
-                    x += 60
-                    y -= 10
-                    continue
-                else:
-                    if left == 0:
-                        left = x
-                        top = y
-                    right = x
-                    break
-            y += 1
-        x += 1
-    return left, right - left
+
+CNBlogSelenium('Yannis-chen', 'Chen@384915').visit_login()

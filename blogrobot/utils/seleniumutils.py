@@ -88,7 +88,7 @@ def get_image(driver, div_path):
     # with open('1.jpg','wb') as f:
     #     f.write(image_result)
     image_file = BytesIO(image_result) # 是一张无序的图片
-    image = merge_image(image_file,location_list)
+    image = merge_image(image_file, location_list)
 
     return image
 
@@ -217,9 +217,10 @@ def main_check_slider(driver):
 
 
 if __name__ == '__main__':
+    opt = webdriver.ChromeOptions()
+    driver = webdriver.Chrome(executable_path=r"/usr/lib/chromedriver", chrome_options=opt)
     try:
         count = 6  # 最多识别6次
-        driver = webdriver.Chrome()
         # 等待滑动按钮加载完成
         element = main_check_slider(driver)
         while count > 0:
