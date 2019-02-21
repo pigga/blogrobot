@@ -56,8 +56,6 @@ def get_post_content_info(req_header, temp_post_info):
         f.write(page_content)
 
 def get_post_info(req_url, req_header, page_index, temp_post_info_list):
-    print '======page index-------'
-    print page_index
     req_params = {"page": page_index}
     req_response = HttpClient.get(req_url, req_params, req_header)
     page = BeautifulSoup(req_response, 'lxml')
